@@ -12,6 +12,18 @@ RETURN VALUE
        The strlen() function returns the number of characters in s.
 */
 
+/*
+size_t standard_strlen(const char *s){
+	const char *sc;
+
+	for(sc = c; *sc != '\0'; ++sc)
+		;
+	
+	return (sc - s);
+}
+*/
+
+
 size_t mystrlen(const char *s){
 	int ret = 0;
 	while(*s++ != '\0') ret++;
@@ -27,6 +39,7 @@ int main(int argc, char **argv){
 	
 	return 0;
 }
+
 
 
 
