@@ -12,6 +12,21 @@ DESCRIPTION
 RETURN VALUE
        The memset() function returns a pointer to the memory area s.
 */
+/*
+void *(memset)(void *s, int c, size_t n){
+	const unsigned char uc = c;
+	unsigned char *su;
+	
+	for(su = s; 0<n; ++su, --n)
+		*su = uc;
+	
+	return (s)
+}
+
+
+*/
+
+
 
 void *mymemset(void *s, int c, size_t n){
 	int i = 0;
