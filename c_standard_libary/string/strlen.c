@@ -30,3 +30,10 @@ int main(int argc, char **argv){
 
 
 
+
+
+/*
+size_t格式在/usr/include/linux/types.h定义，32位系统下为 unsigned int，64位系统下为 long unsigned int
+	typedef _kernel_size_t size_t
+这个为什么不定义更长或更短的类型，比如讲size_t 32位下定义为unsigned long 或 int?
+*/
