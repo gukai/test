@@ -12,6 +12,18 @@ RETURN VALUE
        The strlen() function returns the number of characters in s.
 */
 
+/*
+size_t standard_strlen(const char *s){
+	const char *sc;
+
+	for(sc = c; *sc != '\0'; ++sc)
+		;
+	
+	return (sc - s);
+}
+*/
+
+
 size_t mystrlen(const char *s){
 	int ret = 0;
 	while(*s++ != '\0') ret++;
@@ -31,9 +43,12 @@ int main(int argc, char **argv){
 
 
 
+<<<<<<< HEAD
 
 /*
 size_t格式在/usr/include/linux/types.h定义，32位系统下为 unsigned int，64位系统下为 long unsigned int
 	typedef _kernel_size_t size_t
 这个为什么不定义更长或更短的类型，比如讲size_t 32位下定义为unsigned long 或 int?
 */
+=======
+>>>>>>> 35db481ebc264fc126fefa061ed01f162bc82cbc
