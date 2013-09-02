@@ -12,11 +12,12 @@ RETURN VALUE
 */
 void *mymemcpy(void *dest, const void *src, size_t n);
 void *mymemcpy2(void *dest, const void *src, size_t n);
+void *mymemcpy3(void *dest, const void *src, size_t n);
 
 /*Test*/
 int
 main(int argc, char **argv){
-	char abc[10] = "abcde";
+	char abc[15] = "abcde";
 	char *abc_next = abc + 2;
 	char right_abc[10];
 	
@@ -42,6 +43,16 @@ main(int argc, char **argv){
 	mymemcpy2(abc_next, abc, 5);
 	printf("abc_next  value is %s after copied.\n", abc_next); 
 	printf("abc value is %s after copied.\n", abc); 
+	printf("**********************************\n");
+	memset(abc, 0, 10);
+	memcpy(abc, "abcdefghi", 9);	
+	printf("abc value is %s at the start point.\n", abc);
+	char hello[10];	
+	mymemcpy3(hello, abc, 9);
+	printf("hello is %s\n", hello); 
+	mymemcpy3(abc_next, abc, 9);
+	printf("abc_next  value is %s after copied.\n", abc_next); 
+	printf("abc value is %s after copied.\n", abc); 
 	
 
 	return 0;
@@ -63,5 +74,34 @@ void *mymemcpy2(void *dest, const void *src, size_t n){
 	}
 	return dest;
 
+}
+
+/*要解决拷贝速度问题.*/
+void *mymemcpy3(void *dest, const void *src, size_t n){
+	void *temp = (void *)dest;
+	int cpu_size = sizeof(char *);
+	int word = n/cpu_size;
+	int word_left = n%cpu_size;
+
+	while(word > 0){
+		if(8 == cpu_size){
+			*(long *)temp = *(long *)src;
+		}else if(4 == cpu_size){
+			*(int *)temp = *(int *)src;
+		}else{
+			return NULL;
+		}
+
+		temp += cpu_size;
+		src += cpu_size;
+		word --;
+	}
+
+	while(word_left > 0){
+		*(char *)temp++ = *(char *)src++;
+		word_left --;
+	}
+
+	return (void *)dest;
 }
 
