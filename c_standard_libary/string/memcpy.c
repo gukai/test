@@ -13,6 +13,7 @@ RETURN VALUE
 void *mymemcpy(void *dest, const void *src, size_t n);
 void *mymemcpy2(void *dest, const void *src, size_t n);
 void *mymemcpy3(void *dest, const void *src, size_t n);
+void *mymemcpy4(void *dest, const void *src, size_t n);
 
 /*Test*/
 int
@@ -20,15 +21,15 @@ main(int argc, char **argv){
 	char abc[15] = "abcde";
 	char *abc_next = abc + 2;
 	char right_abc[10];
-	
+
 	printf("right abc is %s\n", (char *)mymemcpy(right_abc, abc, 5));
 
-	
+
 	printf("abc value is %s at the start point.\n", abc); 
 	memcpy(abc_next, abc, 5);
 	printf("abc_next  value is %s after copied.\n", abc_next); 
 	printf("abc value is %s after copied.\n", abc); 
-	
+
 	printf("**********************************\n");
 	memset(abc, 0, 10);
 	memcpy(abc, "abcde", 5);	
@@ -53,11 +54,24 @@ main(int argc, char **argv){
 	mymemcpy3(abc_next, abc, 9);
 	printf("abc_next  value is %s after copied.\n", abc_next); 
 	printf("abc value is %s after copied.\n", abc); 
-	
+	printf("**********************************\n");
+	memset(abc, 0, 10);
+	memcpy(abc, "abcdefghi", 9);	
+	printf("abc value is %s at the start point.\n", abc);
+	char world[10];	
+	mymemcpy4(world, abc, 9);
+	printf("world is %s\n", world); 
+	mymemcpy4(abc_next, abc, 9);
+	printf("abc_next  value is %s after copied.\n", abc_next); 
+	printf("abc value is %s after copied.\n", abc); 
+
 
 	return 0;
 }
-
+/*解决内存重叠有两种方法
+  1.反向拷贝	2.利用buf
+ 但是这些方法都只是解决dest最后的正确，无法避免src最终还是要被污染.
+*/
 void *mymemcpy(void *dest, const void *src, size_t n){
 	for(;n > 0; --n){
 		*((char *)dest + n - 1) = *((char *)src + n - 1);
@@ -105,3 +119,34 @@ void *mymemcpy3(void *dest, const void *src, size_t n){
 	return (void *)dest;
 }
 
+/*利用反向拷贝解决内存重叠，利用字长拷贝解决拷贝速度.*/
+void *mymemcpy4(void *dest, const void *src, size_t n){
+	char *temp = (char *)dest;
+	int cpu_size = sizeof(char *);
+	int word = n/cpu_size;
+	int word_left = n%cpu_size;
+		
+	if(8 == cpu_size){
+		temp = (long *)(temp + word_left);
+		src = (long *)(src + word_left);
+	}else if(4 == cpu_size){
+		temp = (int *)(temp + word_left);
+		src = (int *)(src + word_left);	
+	}else{
+		return NULL;
+	}
+
+	while(word > 0){
+		*(temp+word-1) = *(src+word-1);
+		word--;
+	}
+	
+	temp = (char *)dest;
+	src =  (char *)src - word_left;
+	while(word_left > 0){
+		*(temp + word_left -1) = (char *)*(src + word_left -1);
+		word_left--;
+	}
+
+	return (void *)dest;
+}
