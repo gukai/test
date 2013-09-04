@@ -121,30 +121,27 @@ void *mymemcpy3(void *dest, const void *src, size_t n){
 
 /*利用反向拷贝解决内存重叠，利用字长拷贝解决拷贝速度.*/
 void *mymemcpy4(void *dest, const void *src, size_t n){
-	char *temp = (char *)dest;
+	char *dest_left_p = (char *)dest;
 	int cpu_size = sizeof(char *);
 	int word = n/cpu_size;
 	int word_left = n%cpu_size;
+	char *dest_word_p = dest_left_p + word_left;
+	char *src_word_p = (char *)src + word_left;
 		
-	if(8 == cpu_size){
-		temp = (long *)(temp + word_left);
-		src = (long *)(src + word_left);
-	}else if(4 == cpu_size){
-		temp = (int *)(temp + word_left);
-		src = (int *)(src + word_left);	
-	}else{
-		return NULL;
-	}
 
 	while(word > 0){
-		*(temp+word-1) = *(src+word-1);
+		if(8 == cpu_size){
+			*(((long *)dest_word_p) + word - 1) = *(((long *)src_word_p) + word - 1);
+		}else if(4 == cpu_size){
+			*(((int *)dest_word_p) + word - 1) = *(((int *)src_word_p) + word - 1);
+		}else{
+			return NULL;
+		}
 		word--;
 	}
 	
-	temp = (char *)dest;
-	src =  (char *)src - word_left;
 	while(word_left > 0){
-		*(temp + word_left -1) = (char *)*(src + word_left -1);
+		*(dest_left_p + word_left -1) = *((char *)src + word_left -1);
 		word_left--;
 	}
 
