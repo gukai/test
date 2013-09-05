@@ -37,6 +37,15 @@ int mystrcmp(const char *s1, const char *s2){
 	return -1;
 }
 
+int standard_strcmp(const char *s1, const char *s2){
+	
+	for( ;*s1 == *s2; ++s1,++s2){
+		if(*s1 == '\0') return 0;
+	}
+	
+	return(*(unsigned char *)s1 > *(unsigned char *)s2 ? 1 : -1);
+}
+
 int main(int argc, char **argv){
 	char *a = "hello";
 	char *b = "helloa";
