@@ -13,7 +13,7 @@ bytes to dest to ensure that a total of n bytes are written.
 
 char *mystrncpy(char *dest, const char *src, size_t n){
 	char *temp = dest;
-	for(;(*temp++ = *src++) != '\0', n>0; n--)
+	for(;n > 0 && (*temp++ = *src++) != '\0'; n--)
 		;
 	if(n > 0){
 		for(;n>0;n--){
