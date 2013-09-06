@@ -11,6 +11,8 @@ If  the  length of src is less than n, strncpy() writes additional null
 bytes to dest to ensure that a total of n bytes are written.
 */
 
+
+/*for 循环第二个参数不能用逗号操作符号，会造成左侧无效*/
 char *mystrncpy(char *dest, const char *src, size_t n){
 	char *temp = dest;
 	for(;n > 0 && (*temp++ = *src++) != '\0'; n--)
