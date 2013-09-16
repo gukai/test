@@ -36,15 +36,15 @@ char *mystrstr(const char *haystack, const char *needle){
 	char *ret = NULL;
 	char *needle_temp = needle;
 
-	while(*haystack++ != '\0'){
+	while(*haystack != '\0'){
 		ret = haystack;
-		for (needle_temp = needle; *haystack++ == *needle_temp++; ){
-			if (needle_temp == '\0') return ret;
-		}
+		for (needle_temp = needle; *haystack++ == *needle_temp++; )
+			if (*needle_temp == '\0') return ret;
 	}
 	
 	return NULL;
 }
+
 
 
 
@@ -63,6 +63,7 @@ int main(int argc, char **argv){
 
 	if(NULL != (part1_p = strcasestr(full, part1)))
 		printf("%s\n", part1_p);
+
 
 	return 0;
 	
