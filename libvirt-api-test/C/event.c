@@ -179,12 +179,12 @@ int main(int argc, char **argv){
 	virConnectPtr conn = NULL;
 	int ret1 = 0;	
 
+	virEventRegisterDefaultImpl();
 	conn = virConnectOpen("qemu+ssh://root@10.12.28.63/system");
 	if(conn == NULL){
 		fprintf(stderr, "Failed to open conection");
 		return 1;
 	}
-	virEventRegisterDefaultImpl();
 	
 	//ret1 = virConnectDomainEventRegister(conn, )
 	ret1 = virConnectDomainEventRegister(conn, myDomainEventCallback_1,
