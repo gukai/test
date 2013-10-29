@@ -559,7 +559,7 @@ def main():
         if (old_exitfunc): old_exitfunc()
     sys.exitfunc = exit
 
-    vc.registerCloseCallback(myConnectionCloseCallback, None)
+   # vc.registerCloseCallback(myConnectionCloseCallback, None, None)
 
     #Add 2 callbacks to prove this works with more than just one
     vc.domainEventRegister(myDomainEventCallback1,None)
@@ -575,7 +575,7 @@ def main():
     vc.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_PMSUSPEND, myDomainEventPMSuspendCallback, None)
     vc.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_BALLOON_CHANGE, myDomainEventBalloonChangeCallback, None)
     vc.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_PMSUSPEND_DISK, myDomainEventPMSuspendDiskCallback, None)
-    vc.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_DEVICE_REMOVED, myDomainEventDeviceRemovedCallback, None)
+    #vc.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_DEVICE_REMOVED, myDomainEventDeviceRemovedCallback, None)
 
     vc.setKeepAlive(5, 3)
 
