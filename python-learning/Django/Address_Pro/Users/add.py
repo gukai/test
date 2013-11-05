@@ -10,4 +10,4 @@ address = [
   {'name':'北斗', 'sex':'男','age':'15','address':'河南省安阳市'} 
         ] 
 def index(request): 
-    return render_to_response('list.html',{'address': address})
+    return render_to_response('Users/list.html',{'address': address})
