@@ -8,7 +8,7 @@ def login(request):
     password=request.GET.get('password', None)
     if username is not None:
         userslist=Users.objects.all()
-        for users in userslit:
+        for users in userslist:
             if users.username == username and users.password == password:
                 request.session['username'] = username
                 return render_to_response('login.html', {'username':username})
