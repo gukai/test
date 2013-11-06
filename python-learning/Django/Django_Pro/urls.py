@@ -13,7 +13,9 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    #url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     url(r'^login/', 'Django_Pro.views.login'),
-
+    url(r'^pro/', 'Products.views.proList'),
+    url(r'^buy/', 'Products.views.buypro'),
+    
 )
