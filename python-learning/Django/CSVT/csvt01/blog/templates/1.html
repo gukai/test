@@ -1,0 +1,21 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>{{title}}</title>
+<body>
+#    <h1>hello {{user.name}}</h1>
+#    <li>{{user.say}}</li>
+#
+{% for book in book_list %}
+    {{book}}
+{% endfor %}
+<hr/>
+{% for k,v in user.items %}
+   {{forloop.counter}} {{k}}:{{v}}<br/>
+{% empty %}
+    <li>Sorry no date</li>
+{% endfor %}
+<hr/>
+id:{{id}}
+</body>
+</html>
