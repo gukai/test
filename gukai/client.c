@@ -9,7 +9,6 @@
 
 #define SERV_PORT 9000
 #define MAX_LEN 128
-#define SERV_ADDR "127.0.0.1"
 
 int main(int argc, char **argv){
     int connfd = 0;
@@ -17,22 +16,27 @@ int main(int argc, char **argv){
     char *comu_msg;  
     int write_len = 0;
     char buf[MAX_LEN];
+	int ret = -1;
 
-    if (argc != 2){
-        printf("argc must be two!\n");
+    if (argc != 3){
+        printf("./client <Server IP> <Message>\n");
         exit(1);
     }
-    comu_msg = argv[1];
+    comu_msg = argv[2];
     bzero(&buf,MAX_LEN);
     
 
     bzero(&serveradd, sizeof(struct sockaddr_in));
     serveradd.sin_family = AF_INET;
     serveradd.sin_port = htons(SERV_PORT);
-    inet_pton(AF_INET, SERV_ADDR, &serveradd.sin_addr);
+    inet_pton(AF_INET, argv[1], &serveradd.sin_addr);
     
     connfd = socket(AF_INET, SOCK_STREAM, 0);
-    connect(connfd, (struct sockaddr *)&serveradd, sizeof(struct sockaddr_in));
+    ret = connect(connfd, (struct sockaddr *)&serveradd, sizeof(struct sockaddr_in));
+    if(ret != 0 ){
+		printf("connection error, exit!\n");
+		exit(1);
+	}
 
     printf("write:%s to server. \n", comu_msg);
     write_len = write(connfd, comu_msg, strlen(comu_msg));
