@@ -35,6 +35,7 @@ int main(int argc, char **argv){
 	    printf("%c", buf[i]);
 	}
         printf("\n");
+	close(accept_fd);
     }
 
     return 0;
