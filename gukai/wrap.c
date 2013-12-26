@@ -92,7 +92,7 @@ ssize_t Readn(int fd, void *ptr, size_t nbytes){
             }
         }else{
             nleft -= curread;
-            curptr ++ curread;
+            curptr += curread;
        }
     }
 
@@ -100,6 +100,32 @@ ssize_t Readn(int fd, void *ptr, size_t nbytes){
   
 }
 
+
+/*
+ Write在写缓冲区是阻塞的，必须将指定的字节写到内核缓冲区才算完毕。
+ 该方法在被信号中断后重试.并严格对写入的字节进行检查。（虽然看上去没啥意义）
+*/
+ssize_t Writen(int fd, void *ptr, size_t nbytes){
+    size_t nleft = nbytes;
+    ssize curwrite = 0;
+    char curptr = ptr;
+
+    while(nleft > 0){
+        if(curwrite = write(fd, curper, nleft) == -1){
+            if(error == EINTR){
+                curwrite = 0; 
+            }else{
+                WriteLog("Writen Error");
+                return -1;
+            }
+        }else{
+            nleft -= curwrite;
+            curptr += curwrite;
+        }
+    }
+
+    return nbutes - nleft;
+}
 
 
 
