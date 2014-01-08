@@ -6,6 +6,7 @@ TEMP=`getopt -o ab:c:: --long a-long,b-long:,c-long:: \
 
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
+echo $TEMP
 eval set -- "$TEMP"
 
 while true ; do
