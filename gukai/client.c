@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define SERV_PORT 9000
+#define SERV_PORT 1202
 #define MAX_LEN 128
 
 int main(int argc, char **argv){
