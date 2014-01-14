@@ -8,10 +8,23 @@ NETMASK=""
 GATEWAY=""
 DNS1=""
 
-
-create-usage() {
-  echo "usage: --command create <--ctid id>  <--bridge bridge>  <--devname name> <--ipaddr ip> <--netmask mask> <--gateway gateway> <--dns1 dns>"
+all-usage(){
+    create-veth-usage
+    addbrif-usage
 }
+
+create-veth-usage() {
+    echo "create usage: --command create <--ctid id>  <--bridge bridge>  <--devname name> <--ipaddr ip> <--netmask mask> <--gateway gateway> <--dns1 dns>"
+}
+
+addbrif-usage(){
+    echo "addbrif usage: --command addbrif <--ctid id>"    
+}
+
+net-init-usage(){
+    echo "net-init usage: --command net-init"
+}
+
 
 is_online(){
     local i=0
@@ -30,9 +43,8 @@ is_online(){
 
 validate-create() {
     
-    if [ ! -f /home/gukai/vznet.conf ] ; then
-        echo '#!/bin/bash' > /etc/vz/vznet.conf
-        echo 'EXTERNAL_SCRIPT="/usr/sbin/vznetaddbr"' >> /etc/vz/vznet.conf
+    if [  -e /etc/vz/vznet.conf ] ; then
+        rm -f /etc/vz/vznet.conf
     fi
 
     if [ -z ${CTID} ];then
@@ -78,10 +90,20 @@ validate-create() {
     #echo "command:$COMMAND, ctid:$CTID, bridge:$BRIDGE, devname:$DEVNAME, ipaddr:$IPADDR, netmask:$NETMASK, gateway:$GATEWAY, dns1:$DNS1"
 }
 
-add-netconfig(){
-    local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=yes DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1"
-    vzctl exec2 $CTID "echo $conf > /etc/sysconfig/network-scripts/ifcfg-$DEVNAME" >/dev/null 2>&1
+validate-addbrif(){
+    if [ -z ${CTID} ];then
+        echo "ERROR"
+        echo "ctid must be set"
+        exit 2;
+    fi
+ 
+    if ! is_online; then
+       echo "ERROR"
+       echo "$CTID is offline"
+       exit 4
+    fi
 }
+
 
 create-veth(){
     if ! vzlist $CTID >/dev/null 2>&1; then
@@ -103,13 +125,55 @@ create-veth(){
     local num=`echo $DEVNAME | grep -Eo '[0-9]+'`
 
     vzctl set $CTID --netif_add $DEVNAME --bridge $BRIDGE --ifname $DEVNAME --save >/dev/null 2>&1
-   # vzctl set $CTID --netif_add $DEVNAME --bridge $BRIDGE --ifname $DEVNAME --save >/dev/null 2>&1
     
-    #brctl addif $BRIDGE veth$CTID.$num >/dev/null 2>&1
+    brctl addif $BRIDGE veth$CTID.$num >/dev/null 2>&1
     
     vzctl exec $CTID ifup $DEVNAME >/dev/null 2>&1
         
 }
+
+add-netconfig(){
+    local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=yes DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1"
+    vzctl exec2 $CTID "echo $conf > /etc/sysconfig/network-scripts/ifcfg-$DEVNAME" >/dev/null 2>&1
+}
+
+addbrif(){
+    CONFIGFILE=/etc/vz/conf/${CTID}.conf
+    . $CONFIGFILE
+
+    NETIFLIST=$(printf %s "$NETIF" |tr ';' '\n')
+    #echo $NETIFLIST
+
+    for iface in $NETIFLIST; do
+        bridge=
+        host_ifname=
+
+        for str in $(printf %s "$iface" |tr ',' '\n'); do
+            case "$str" in
+                bridge=*|host_ifname=*|ifname=*)
+                    eval "${str%%=*}=\${str#*=}" ;;
+            esac
+        done
+        
+        num=`echo $ifname | grep -Eo '[0-9]+'`
+
+        if [ -n $bridge ] ; then
+            brctl addif $bridge veth$CTID.$num >/dev/null 2>&1
+        fi
+    done
+}
+
+net-init(){
+    runninglist=`vzlist -o ctid -H`
+    #echo $runninglist
+    for line in $runninglist; do
+      CTID=$line
+      addbrif
+    done
+}
+
+
+#Main from here
 
 which brctl > /dev/null 2>&1
 if [ $? != 0 ]; then
@@ -136,7 +200,7 @@ while true ; do
                 -g|--gateway) GATEWAY=$2; shift 2 ;;
                 -s|--dns1) DNS1=$2; shift 2 ;;
                 --) shift ; break ;;
-                *) echo "Unknow Option, verfiy your command" ; create-usage; exit 1 ;;
+                *) echo "Unknow Option, verfiy your command" ; usage-usage; exit 1 ;;
         esac
 done
 
@@ -148,6 +212,8 @@ fi
 
 case $COMMAND in
     create) create-veth ;;
-    usage) create-usage ;;
+    net-init) net-init;;
+    usage) all-usage ;;
+    addbrif) addbrif;;
 esac
 exit $?
