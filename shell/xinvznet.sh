@@ -8,6 +8,7 @@ NETMASK=""
 GATEWAY=""
 DNS1=""
 
+
 create-usage() {
   echo "usage: --command create <--ctid id>  <--bridge bridge>  <--devname name> <--ipaddr ip> <--netmask mask> <--gateway gateway> <--dns1 dns>"
 }
@@ -15,7 +16,7 @@ create-usage() {
 is_online(){
     local i=0
     while [ $i -le 5 ] && ! vzctl exec2 $CTID ifconfig >/dev/null 2>&1 ; do
-        echo "try again $i"
+        #echo "try again $i"
         i=`expr $i + 1`
         sleep 1
     done
@@ -28,83 +29,94 @@ is_online(){
 }
 
 validate-create() {
+    
+    if [ ! -f /home/gukai/vznet.conf ] ; then
+        echo '#!/bin/bash' > /etc/vz/vznet.conf
+        echo 'EXTERNAL_SCRIPT="/usr/sbin/vznetaddbr"' >> /etc/vz/vznet.conf
+    fi
+
     if [ -z ${CTID} ];then
+        echo "ERROR"
         echo "ctid must be set"
-	exit 1;
+	exit 2;
     fi
 
     if [ -z ${BRIDGE} ];then
+        echo "ERROR"
         echo "bridge must be set"
-	exit 1;
+	exit 2;
     fi
 
     if [ -z ${DEVNAME} ];then
+        echo "ERROR"
         echo "devname must be set"
-	exit 1;
+	exit 2;
     fi
 
     if [ -z ${IPADDR} ];then
+        echo "ERROR"
         echo "ipaddr must be set"
-	exit 1;
+	exit 2;
     fi
 
     if [ -z ${NETMASK} ];then
+        echo "ERROR"
         echo "netmask must be set"
-	exit 1;
+	exit 2;
     fi
     if [ -z ${GATEWAY} ];then
+        echo "ERROR"
         echo "gateway must be set"
-	exit 1;
+	exit 2;
     fi
     if [ -z ${DNS1} ];then
+        echo "ERROR"
         echo "dns1 must be set"
-	exit 1;
+	exit 2;
     fi
-    echo "command:$COMMAND, ctid:$CTID, bridge:$BRIDGE, devname:$DEVNAME, ipaddr:$IPADDR, netmask:$NETMASK, gateway:$GATEWAY, dns1:$DNS1"
+    
+    #echo "command:$COMMAND, ctid:$CTID, bridge:$BRIDGE, devname:$DEVNAME, ipaddr:$IPADDR, netmask:$NETMASK, gateway:$GATEWAY, dns1:$DNS1"
 }
 
 add-netconfig(){
-    local res
-    local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=no DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1"
-    vzctl exec2 $CTID "echo $conf > /etc/sysconfig/network-scripts/ifcfg-$DEVNAME"
-    res=$?
-#    vzctl exec2 104 "cat > /etc/sysconfig/network-scripts/ifcfg-$DEVNAME << \"\EOF\"
-#        TYPE=Ethernet
-#        NM_CONTROLLED=no
-#        BOOTPROTO=static
-#        ONBOOT=yes
-#        DEVICE=$DEVNAME
-#        IPADDR=$IPADDR
-#        NETMASK=$NETMASK
-#        GATEWAY=$GATEWAY
-#        DNS1=$DNS1
-#        \EOF"
-#
-#    echo "add return $res"
+    local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=yes DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1"
+    vzctl exec2 $CTID "echo $conf > /etc/sysconfig/network-scripts/ifcfg-$DEVNAME" >/dev/null 2>&1
 }
 
 create-veth(){
-    if ! vzlist $CTID; then
-        echo "error"
-	exit 1
+    if ! vzlist $CTID >/dev/null 2>&1; then
+        echo "ERROR"
+        echo "The CTID is not exist."
+	exit 3
     fi 
-
-    vzctl set $CTID --netif_add $DEVNAME --bridge $BRIDGE --ifname $DEVNAME --save
     
-    brctl addif $BRIDGE veth$CTID.
-    
+    validate-create  
+ 
     if is_online; then
         add-netconfig
     else
+       echo "ERROR"
        echo "$CTID is offline"
+       exit 4
     fi
+    
+    local num=`echo $DEVNAME | grep -Eo '[0-9]+'`
 
-    vzctl exec $CTID ifup $DEVNAME
+    vzctl set $CTID --netif_add $DEVNAME --bridge $BRIDGE --ifname $DEVNAME --save >/dev/null 2>&1
+   # vzctl set $CTID --netif_add $DEVNAME --bridge $BRIDGE --ifname $DEVNAME --save >/dev/null 2>&1
+    
+    #brctl addif $BRIDGE veth$CTID.$num >/dev/null 2>&1
+    
+    vzctl exec $CTID ifup $DEVNAME >/dev/null 2>&1
         
 }
 
-
-
+which brctl > /dev/null 2>&1
+if [ $? != 0 ]; then
+    echo "ERROR"
+    echo "It's necessary  to install  bridge-utils"
+    exit 5
+fi
 
 TEMP=`getopt -o m:c:b:d:i:n:g:s: --long command:,ctid:,bridge:,devname:,ipaddr:,netmask:,gateway:,dns1: \
      -n 'example.bash' -- "$@"`
@@ -129,10 +141,13 @@ while true ; do
 done
 
 if [ -z ${COMMAND} ];then
+    echo "ERROR"
     echo "command cant be null"
+    exit 1
 fi
 
-validate-create
-create-veth
-
+case $COMMAND in
+    create) create-veth ;;
+    usage) create-usage ;;
+esac
 exit $?
