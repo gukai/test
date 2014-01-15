@@ -7,6 +7,7 @@ IPADDR=""
 NETMASK=""
 GATEWAY=""
 DNS1=""
+DNS2=""
 
 all-usage(){
     create-veth-usage
@@ -14,7 +15,7 @@ all-usage(){
 }
 
 create-veth-usage() {
-    echo "create usage: --command create <--ctid id>  <--bridge bridge>  <--devname name> <--ipaddr ip> <--netmask mask> <--gateway gateway> <--dns1 dns>"
+    echo "create usage: --command create <--ctid id>  <--bridge bridge>  <--devname name> <--ipaddr ip> <--netmask mask> <--gateway gateway> <--dns1 dns> [--dns2 dns]"
 }
 
 addbrif-usage(){
@@ -106,7 +107,7 @@ validate-addbrif(){
 
 
 create-veth(){
-    if ! vzlist $CTID >/dev/null 2>&1; then
+    if ! vzlist $CTID -a >/dev/null 2>&1; then
         echo "ERROR"
         echo "The CTID is not exist."
 	exit 3
@@ -129,11 +130,16 @@ create-veth(){
     brctl addif $BRIDGE veth$CTID.$num >/dev/null 2>&1
     
     vzctl exec $CTID ifup $DEVNAME >/dev/null 2>&1
+    echo "SUCCESS"
         
 }
 
 add-netconfig(){
-    local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=yes DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1"
+    if [ -z ${DNS2} ]; then
+        local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=yes DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1"
+    else
+        local conf="TYPE=Ethernet NM_CONTROLLED=no BOOTPROTO=static ONBOOT=yes DEVICE=$DEVNAME IPADDR=$IPADDR NETMASK=$NETMASK GATEWAY=$GATEWAY DNS1=$DNS1 DNS2=$DNS2"
+    fi
     vzctl exec2 $CTID "echo $conf > /etc/sysconfig/network-scripts/ifcfg-$DEVNAME" >/dev/null 2>&1
 }
 
@@ -161,15 +167,17 @@ addbrif(){
             brctl addif $bridge veth$CTID.$num >/dev/null 2>&1
         fi
     done
+    echo "SUCCESS"
 }
 
 net-init(){
-    runninglist=`vzlist -o ctid -H`
+    runninglist=`vzlist -o ctid -H >/dev/null 2>&1`
     #echo $runninglist
     for line in $runninglist; do
       CTID=$line
       addbrif
     done
+    echo "SUCCESS"
 }
 
 
@@ -182,8 +190,8 @@ if [ $? != 0 ]; then
     exit 5
 fi
 
-TEMP=`getopt -o m:c:b:d:i:n:g:s: --long command:,ctid:,bridge:,devname:,ipaddr:,netmask:,gateway:,dns1: \
-     -n 'example.bash' -- "$@"`
+TEMP=`getopt -o m:c:b:d:i:n:g:s:z: --long command:,ctid:,bridge:,devname:,ipaddr:,netmask:,gateway:,dns1:,dns2: \
+     -n 'ERROR' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
@@ -199,6 +207,7 @@ while true ; do
                 -n|--netmask) NETMASK=$2 ; shift 2 ;;
                 -g|--gateway) GATEWAY=$2; shift 2 ;;
                 -s|--dns1) DNS1=$2; shift 2 ;;
+                -z|--dns2) DNS2=$2; shift 2 ;;
                 --) shift ; break ;;
                 *) echo "Unknow Option, verfiy your command" ; usage-usage; exit 1 ;;
         esac

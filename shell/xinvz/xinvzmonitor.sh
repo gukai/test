@@ -1,6 +1,7 @@
 #!/bin/sh
 CPUUSAGE=""
-
+TX_BYTES=
+RX_BYTES=
 
 cpu_used(){
     local i=0
@@ -16,6 +17,17 @@ cpu_used(){
 }
 
 
+
 #Main from here
+#case "$1" in
+#        all)
+#                qemu_kvm
+#                ;;
+#        *)
+#                vzctl runscript 
+#esac
+
+
+
 cpu_used
 echo $CPUUSAGE
