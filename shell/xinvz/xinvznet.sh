@@ -171,7 +171,7 @@ addbrif(){
 }
 
 net-init(){
-    runninglist=`vzlist -o ctid -H >/dev/null 2>&1`
+    runninglist=`vzlist -o ctid -H 2>/dev/null`
     #echo $runninglist
     for line in $runninglist; do
       CTID=$line
